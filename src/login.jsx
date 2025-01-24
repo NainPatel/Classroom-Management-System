@@ -2,10 +2,19 @@ import {Button, Checkbox, Label, Modal, TextInput,} from "flowbite-react";
 import {useEffect, useRef, useState} from "react";
 import app from './firebase_config.jsx'
 import  google from  './assets/google.png'
+import {
+  createUserWithEmailAndPassword,
+  getAuth,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+  signInWithPopup, GoogleAuthProvider
+} from 'firebase/auth';
+import {doc, getDoc, getFirestore, setDoc} from 'firebase/firestore'
 
-import { getAuth, createUserWithEmailAndPassword , signInWithPopup, signInWithEmailAndPassword ,GoogleAuthProvider} from "firebase/auth";
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
+const firestore_database = getFirestore(app)
 
 
 const Login =  ({openModal , setOpenModal }) => {
@@ -14,6 +23,7 @@ const Login =  ({openModal , setOpenModal }) => {
   const [Email, setEmail] = useState('')
   const [Password, setPassword] = useState('')
   const [createAccount, setCreateAccount] = useState(false)
+  const [Role, setRole] = useState('')
 
 
   // useEffect(() => {
@@ -35,14 +45,48 @@ const Login =  ({openModal , setOpenModal }) => {
   }
 
   const signup = () => {
-    createUserWithEmailAndPassword(auth,Email,Password).then(()=> {
-      alert(`user created`)
-    }).catch((error) => {
-      alert("Error");
-    });
-  }
+    createUserWithEmailAndPassword(auth, Email, Password)
+        .then((userCredential) => {
+          updateProfile(auth.currentUser, {
+            displayName: Username,
+          }).then(async () => {
+            const user = userCredential.user;
 
-const login = ()=>{
+            const usr = {
+              uid: user.uid,
+              username: Username,
+              email: user.email,
+              role: Role, // Role is already set from the state
+            };
+
+            console.log(usr);
+
+            const docRef = doc(firestore_database, "User", user.uid);
+            const obj = {
+              email: user.email,
+              role: Role,
+            };
+
+            try {
+              await setDoc(docRef, obj);
+              setOpenModal(false);
+              setRole("");
+              setUsername("");
+              setEmail("");
+            } catch (error) {
+              console.error("Error saving to Firestore:", error);
+              alert("Failed to save user data. Please try again.");
+            }
+          });
+        })
+        .catch((error) => {
+          console.error("Signup Error:", error);
+          alert("Signup failed: " + error.message);
+        });
+  };
+
+
+  const login = ()=>{
   signInWithEmailAndPassword(auth,Email,Password).then(() => {
     alert('logged in ')
   }).catch((error) => {
@@ -76,7 +120,7 @@ const login = ()=>{
               </div>
               <TextInput id="email" value={Email} onChange={(event) => {
                 setEmail(event.target.value)
-              } } placeholder="name@company.com" required/>
+              }} placeholder="name@company.com" required/>
             </div>
             <div>
               <div className="mb-2 block">
@@ -84,41 +128,69 @@ const login = ()=>{
               </div>
               <TextInput id="password" type="password" value={Password} onChange={(event) => {
                 setPassword(event.target.value)
-              } } required/>
+              }} required/>
             </div>
+            {
+              createAccount ? (
+                  <div>
+                    <div className="mb-2 block">
+                      <Label htmlFor="role" value="Select Role" />
+                    </div>
+                    <select
+                        name="role"
+                        id="role"
+                        value={Role} // Bind the state to the select element
+                        onChange={(event) => {
+                          const selectedRole = event.target.value; // Get the selected value
+                          console.log("Selected Role:", selectedRole); // Debugging
+                          setRole(selectedRole); // Update state with the selected value
+                        }}
+                        required
+                    >
+                      <option value="none">Select Role</option>
+                      <option value="Teacher">Teacher</option>
+                      <option value="Student">Student</option>
+                    </select>
+                  </div>
+              ) : null
+            }
+
+
+
             <div className="w-full">
               {
                 createAccount ?
                     <Button onClick={signup}>SignUp</Button>
                     :
                     <Button onClick={login}>Log in to your account</Button>
-
               }
             </div>
-            <div className="flex justify-center">
-              <div>
+
+            {
+              createAccount ? null : <div className="flex justify-center">
+                <div>
                   <div className="mb-4">
                     --or--
 
                   </div>
-                  <img onClick={google_signin}  alt={'google png'} className={'w-15 h-10'} src={google}/>
-              </div>
-            </div>
+              <img onClick={google_signin} alt={'google png'} className={'w-15 h-10'} src={google}/>
+    </div>
+ </div>
+            }
+
             <div className="flex justify-between text-sm font-medium text-gray-500 dark:text-gray-300">
               &nbsp;
               <a onClick={() => {
                 setCreateAccount(!createAccount)
               }} className="text-cyan-700 hover:underline dark:text-cyan-500">
-
                 {
-                  !createAccount ? 'Create account'  : 'Login to Account'
+                  !createAccount ? 'Create account' : 'Login to Account'
                 }
               </a>
             </div>
           </div>
         </Modal.Body>
       </Modal>
-
     </div>
  </>)
 
