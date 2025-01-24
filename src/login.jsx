@@ -86,15 +86,6 @@ const login = ()=>{
                 setPassword(event.target.value)
               } } required/>
             </div>
-            <div className="flex justify-between">
-              <div className="flex items-center gap-2">
-                <Checkbox id="remember"/>
-                <Label htmlFor="remember">Remember me</Label>
-              </div>
-              <a href="#" className="text-sm text-cyan-700 hover:underline dark:text-cyan-500">
-                Lost Password?
-              </a>
-            </div>
             <div className="w-full">
               {
                 createAccount ?
@@ -106,15 +97,15 @@ const login = ()=>{
             </div>
             <div className="flex justify-center">
               <div>
+                  <div className="mb-4">
+                    --or--
 
-
-
+                  </div>
                   <img onClick={google_signin}  alt={'google png'} className={'w-15 h-10'} src={google}/>
-
               </div>
             </div>
             <div className="flex justify-between text-sm font-medium text-gray-500 dark:text-gray-300">
-              Not registered?&nbsp;
+              &nbsp;
               <a onClick={() => {
                 setCreateAccount(!createAccount)
               }} className="text-cyan-700 hover:underline dark:text-cyan-500">
