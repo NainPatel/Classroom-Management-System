@@ -28,7 +28,7 @@ const Teacher_Home = () => {
         try {
 
 
-            let response = fetch(`https://educonnectwithspringandreact-production.up.railway.app/api/classes/get_all/${user.uid}/${user.role}`, {
+            let response = fetch(`http://localhost:8080/api/classes/get_all/${user.uid}/${user.role}`, {
                 method: 'GET',
                 headers:{
                     accept: 'application/json',
