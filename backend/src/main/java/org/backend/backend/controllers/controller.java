@@ -143,10 +143,11 @@ public class controller {
         String description = data.get("description").toString();
 //        Date lastdate = (Date) data.get("sub_date");
         String lastdate =  data.get("sub_date").toString();
+        boolean isMarksEnabled = (boolean) data.get("marksEnabled");
         System.out.println(lastdate);
         boolean latesub = (boolean) data.get("late_sub");
 
-        org.backend.backend.model.Assignment assignment1 = new org.backend.backend.model.Assignment(title, description, lastdate, latesub, code, class__code);
+        org.backend.backend.model.Assignment assignment1 = new org.backend.backend.model.Assignment(title, description, lastdate, latesub, code, class__code,isMarksEnabled);
         assignment.save(assignment1);
 
         return ResponseEntity.ok(assignment.findByClassCode(class__code));
@@ -265,6 +266,25 @@ public class controller {
         }
         return ResponseEntity.ok(stringObjectMap);
     }
+
+
+
+    @PutMapping("/addmarks/{assignment_id}/{student_id}")
+public ResponseEntity<submissions> addMarks(@PathVariable String assignment_id, 
+                                            @PathVariable String student_id, 
+                                            @RequestBody Map<String, Object> data) {
+    List<submissions> submissionsList = submissions_repo.findByStudentId(assignment_id, student_id);
+    
+    if (!submissionsList.isEmpty()) {
+        submissions submission = submissionsList.get(0); // Assuming you want the first result
+        submission.setMarks(Integer.parseInt(data.get("marks").toString()));
+        submissions_repo.save(submission);
+        return ResponseEntity.ok(submission);
+    } else {
+        return ResponseEntity.notFound().build();
+    }
+}
+
 
 //    @PostMapping("/submission")
 //    ResponseEntity<List<submissions>> submissions(@RequestBody Map<String, Object> data) {

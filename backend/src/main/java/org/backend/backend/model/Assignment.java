@@ -19,15 +19,20 @@ public class Assignment {
     private String unique_code;
     
     private String class_code;
+    
+    private boolean marksEnabled;
 
-    public Assignment( String title, String description, String lastdate, boolean latesubmisssion, String uniqueCode, String code) {
-        this.title = title;
-        this.description = description;
-        this.lastdate = lastdate;
-        this.latesubmisssion = latesubmisssion;
-        unique_code = uniqueCode;
-        class_code = code;
-    }
+    public Assignment(String title, String description, String lastdate, boolean latesubmisssion, 
+                  String uniqueCode, String code, boolean marksEnabled) {
+    this.title = title;
+    this.description = description;
+    this.lastdate = lastdate;
+    this.latesubmisssion = latesubmisssion;
+    this.unique_code = uniqueCode;
+    this.class_code = code;
+    this.marksEnabled = marksEnabled;
+}
+
 
     public Assignment() {
     }
@@ -88,6 +93,14 @@ public class Assignment {
         this.class_code = class_code;
     }
 
+    public boolean isMarksEnabled() {
+        return marksEnabled;
+    }
+
+    public void setMarksEnabled(boolean marksEnabled) {
+        this.marksEnabled = marksEnabled;
+    }
+
     @Override
     public String toString() {
         return "Assignment{" +
@@ -98,6 +111,7 @@ public class Assignment {
                 ", latesubmisssion=" + latesubmisssion +
                 ", unique_code='" + unique_code + '\'' +
                 ", class_code='" + class_code + '\'' +
+                ", marksEnabled=" + marksEnabled +
                 '}';
     }
 }

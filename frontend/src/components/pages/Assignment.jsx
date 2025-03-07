@@ -27,8 +27,7 @@ const Assignment = () => {
     const [submissions, setSubmissions] = useState(new Map())
     const navigation = useNavigate();
 
-
-    useEffect(() => {
+    useEffect(() => {setCreateModal
 
         if (user.role === 'Student') {
 
@@ -47,7 +46,6 @@ const Assignment = () => {
                     )
                 }
             )
-
         }
 
         let res = fetch(`http://localhost:8080/api/get_assignments/${class_id.code}`, {
@@ -62,8 +60,10 @@ const Assignment = () => {
                     }
                 )
             }
+           
         )
     }, []);
+    console.log(assignments)
     const toggleCreateModal = () => {
         setCreateModal(!createModal);
     }
@@ -133,12 +133,20 @@ const Assignment = () => {
         if (data.late_sub !== null) {
             lst_sub = true;
         }
+        let marksEnabled =false;
+        if(data.marksEnabled !== null)
+        {
+            marksEnabled = true;
+        }
         const new_data = {
             title: data.title,
             description: data.description,
             sub_date: data.sub_date,
-            late_sub: lst_sub
+            late_sub: lst_sub,
+            marksEnabled:marksEnabled
+
         }
+
         const responses = CreateAssignmentFetch(new_data, class_id.code)
         await responses.then(
             (responses) => {
@@ -147,6 +155,8 @@ const Assignment = () => {
                 })
             }
         )
+
+
     }
 
     return (
@@ -262,6 +272,7 @@ const Assignment = () => {
                                                         Delete
                                                     </a>
                                                 </Table.Cell>
+                                                
                                             </Table.Row>
                                         ))
                                     }
@@ -292,6 +303,7 @@ const Assignment = () => {
                                     title: formData.get('title'),
                                     description: formData.get('description'),
                                     sub_date: last_date,
+                                    marksEnabled:formData.get('enable_marks'),
                                     late_sub: formData.get('late_sub_switch')
                                 }
 
@@ -362,10 +374,14 @@ const Assignment = () => {
                                                                         code: class_id.code,
                                                                         assignment_id:assignment.unique_code,
                                                                         last_date:new Date(assignment.lastdate),
+                                                                        enableMark: assignment.marksEnabled
                                                                     }
-                                                                    navigation(`/AssignmentDetails/`,{
-                                                                        state:data,
-                                                                    })
+                                                                    navigation(`/AssignmentDetails/`, {
+                                                                        state: {
+                                                                            ...data  // Assuming 'data' contains other necessary properties
+                                                                             // or false depending on the condition
+                                                                        }
+                                                                    })                                                                    
                                                                 }
                                                             }
                                                     >

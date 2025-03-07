@@ -17,11 +17,11 @@ public class submissions {
     private String sub_date;
     private String student_id;
     private String student_name;
-
+    private int marks;
     public submissions() {
     }
 
-    public submissions(String id, String class_code, String assignment_id, List<String> file_names, List<String> urls, String sub_date, String student_id, String student_name) {
+    public submissions(String id, String class_code, String assignment_id, List<String> file_names, List<String> urls, String sub_date, String student_id, String student_name,int marks) {
         this.id = id;
         this.class_code = class_code;
         this.assignment_id = assignment_id;
@@ -30,11 +30,13 @@ public class submissions {
         this.sub_date = sub_date;
         this.student_id = student_id;
         this.student_name = student_name;
+        this.marks=marks;
     }
 
     public String getId() {
         return id;
     }
+
 
     public void setId(String id) {
         this.id = id;
@@ -96,6 +98,13 @@ public class submissions {
         this.student_name = student_name;
     }
 
+    public void setMarks(int marks){
+        this.marks=marks;
+    }
+
+    public int getMarks(){
+        return marks;
+    }
     @Override
     public String toString() {
         return "submissions{" +

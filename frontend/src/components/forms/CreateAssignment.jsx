@@ -4,6 +4,8 @@ import {useState} from "react";
 import Switch from "react-switch";
 const CreateAssignment = () => {
     const [switch1, setSwitch1] = useState(false)
+    const [switch2, setSwitch2] = useState(false)
+
     return (
         <div className="space-y-6">
             <h3 className="text-xl font-medium text-gray-900 dark:text-white">Create Assignment</h3>
@@ -31,6 +33,13 @@ const CreateAssignment = () => {
                 </div>
                 <Switch id={'late_sub_switch'} name={'late_sub_switch'} checked={switch1}
                         onChange={() => setSwitch1(!switch1)}/>
+            </div>
+            <div>
+                <div className="mb-2 block">
+                    <Label htmlFor="enable_makrs" className={'font-medium'} value="Enable Marks"/>
+                </div>
+                <Switch id={'enable_marks'} name={'enable_marks'} checked={switch2}
+                        onChange={() => setSwitch2(!switch2)}/>
             </div>
 
             <div className="w-full">
