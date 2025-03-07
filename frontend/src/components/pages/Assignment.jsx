@@ -1,16 +1,16 @@
-import {useLocation, useNavigate, useParams} from "react-router-dom";
-import {Accordion, Badge, Button, FileInput, Kbd, Label, Modal, Progress, Table} from "flowbite-react";
-import {HiCheck, HiPlus} from "react-icons/hi";
-import {useEffect, useState} from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { Accordion, Badge, Button, FileInput, Kbd, Label, Modal, Progress, Table } from "flowbite-react";
+import { HiCheck, HiPlus } from "react-icons/hi";
+import { useEffect, useState } from "react";
 import CreateAssignment from "../forms/CreateAssignment.jsx";
-import {CreateAssignmentFetch} from "../../fetch_components/fetchComponents.jsx";
+import { CreateAssignmentFetch } from "../../fetch_components/fetchComponents.jsx";
 import moment from 'moment';
-import {TbListDetails} from "react-icons/tb";
-import {FaExclamation, FaTrash} from "react-icons/fa";
-import {useSelector} from "react-redux";
-import {MdOutlineFileUpload} from "react-icons/md";
-import {getDownloadURL, getStorage, ref, uploadBytes} from "firebase/storage";
-import {BsFillCalendarDateFill} from "react-icons/bs";
+import { TbListDetails } from "react-icons/tb";
+import { FaExclamation, FaTrash } from "react-icons/fa";
+import { useSelector } from "react-redux";
+import { MdOutlineFileUpload } from "react-icons/md";
+import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
+import { BsFillCalendarDateFill } from "react-icons/bs";
 
 
 const Assignment = () => {
@@ -27,7 +27,10 @@ const Assignment = () => {
     const [submissions, setSubmissions] = useState(new Map())
     const navigation = useNavigate();
 
-    useEffect(() => {setCreateModal
+    console.log(submissions)
+    
+    useEffect(() => {
+        setCreateModal
 
         if (user.role === 'Student') {
 
@@ -60,7 +63,7 @@ const Assignment = () => {
                     }
                 )
             }
-           
+
         )
     }, []);
     console.log(assignments)
@@ -133,9 +136,8 @@ const Assignment = () => {
         if (data.late_sub !== null) {
             lst_sub = true;
         }
-        let marksEnabled =false;
-        if(data.marksEnabled !== null)
-        {
+        let marksEnabled = false;
+        if (data.marksEnabled !== null) {
             marksEnabled = true;
         }
         const new_data = {
@@ -143,7 +145,7 @@ const Assignment = () => {
             description: data.description,
             sub_date: data.sub_date,
             late_sub: lst_sub,
-            marksEnabled:marksEnabled
+            marksEnabled: marksEnabled
 
         }
 
@@ -168,7 +170,7 @@ const Assignment = () => {
                             setCreateModal(true)
                         }
                     }>
-                        <HiPlus className="mr-2 h-5 w-5"/> <b style={{fontSize: 'medium'}}>Add Assignment</b>
+                        <HiPlus className="mr-2 h-5 w-5" /> <b style={{ fontSize: 'medium' }}>Add Assignment</b>
                     </Button>
                 </div> : null
             }
@@ -225,18 +227,18 @@ const Assignment = () => {
                                         }
                                         await setFiles(file)
                                     }
-                                } className="hidden"/>
+                                } className="hidden" />
                             </Label>
                         </div>
                         <div className="w-full mt-8">
                             <Button type={'submit'}>
-                                <b style={{fontSize: 'medium'}}>Add
+                                <b style={{ fontSize: 'medium' }}>Add
                                 </b>
                             </Button>
 
                             <Progress progress={progressbar} className={'mt-8'} progressLabelPosition="inside"
-                                      size="xl"
-                                      labelProgress
+                                size="xl"
+                                labelProgress
                             />
                         </div>
                     </form>
@@ -245,7 +247,7 @@ const Assignment = () => {
                         issubmited ? null : <div className={'overflow-x-auto mt-8 '}>
                             <Table striped>
                                 <Table.Head>
-                                    <Table.HeadCell style={{fontSize: 'medium'}}>Files</Table.HeadCell>
+                                    <Table.HeadCell style={{ fontSize: 'medium' }}>Files</Table.HeadCell>
                                     <Table.HeadCell>
                                         <span className={'sr-only'}> Delete </span>
                                     </Table.HeadCell>
@@ -255,7 +257,7 @@ const Assignment = () => {
 
                                         files.map((file, i) => (
                                             <Table.Row key={i}
-                                                       className="bg-white dark:border-gray-700 dark:bg-gray-800">
+                                                className="bg-white dark:border-gray-700 dark:bg-gray-800">
 
                                                 <Table.Cell>{file.name}</Table.Cell>
                                                 <Table.Cell>
@@ -272,7 +274,7 @@ const Assignment = () => {
                                                         Delete
                                                     </a>
                                                 </Table.Cell>
-                                                
+
                                             </Table.Row>
                                         ))
                                     }
@@ -286,7 +288,7 @@ const Assignment = () => {
             <Modal show={createModal} size="md" onClose={
                 toggleCreateModal
             } popup>
-                <Modal.Header/>
+                <Modal.Header />
                 <Modal.Body>
                     <form
                         onSubmit={
@@ -303,7 +305,7 @@ const Assignment = () => {
                                     title: formData.get('title'),
                                     description: formData.get('description'),
                                     sub_date: last_date,
-                                    marksEnabled:formData.get('enable_marks'),
+                                    marksEnabled: formData.get('enable_marks'),
                                     late_sub: formData.get('late_sub_switch')
                                 }
 
@@ -311,141 +313,124 @@ const Assignment = () => {
                                 setCreateModal(false)
                             }
                         }>
-                        <CreateAssignment/>
+                        <CreateAssignment />
                     </form>
                 </Modal.Body>
             </Modal>
             <div className={'p-6'}>
-                {
-                    (
-                        assignments.map((assignment) => (
-                            <Accordion collapseAll={true} key={assignment.unique_code} className={'shadow mb-4'}>
-                                <Accordion.Panel>
-                                    <Accordion.Title className={'font-medium'}>
-                                        <div className={'flex flex-wrap gap-4'}>
-                                            <b>
-                                                {assignment.title}
-                                            </b>
-                                            {
-                                                user.role === 'Student' ? (submissions.has(assignment.unique_code) ?
-                                                    <Badge icon={HiCheck} className={'shadow font-medium'}
+                {assignments.map((assignment) => (
+                    <Accordion collapseAll={true} key={assignment.unique_code} className={'shadow mb-4'}>
+                        <Accordion.Panel>
+                            <Accordion.Title className={'font-medium'}>
+                                <div className={'flex flex-wrap gap-4'}>
+                                    <b>{assignment.title}</b>
+                                    {user.role === 'Student' ? (
+                                        (assignment.marksEnabled && submissions.has(assignment.unique_code)) ? (
+                                            <Badge icon={HiCheck} className={'shadow font-medium'} color={'green'}>
+                                                <b>Marks: {submissions.get(assignment.unique_code).marks ?? 'N/A'}</b>
+                                            </Badge>
+                                        ) : (
+                                            null
+                                        )
+                                    ) : null}
 
-                                                           color={'green'}>
-                                                        <b>Submitted</b>
-                                                    </Badge> :
-                                                    <Badge
-                                                        icon={FaExclamation}
-                                                        className={'shadow font-medium'}
-                                                        color={'warning'}>
-                                                        <b>Not Submitted</b>
-                                                    </Badge>) : null
-                                            }
-                                            {
-                                                user.role === 'Student' ?
-                                                    (submissions.has(assignment.unique_code) && (submissions.get(assignment.unique_code).sub_date) > assignment.lastdate ?
-                                                        <Badge className={'shadow'} icon={FaExclamation}
-                                                               color={'failure'}>
-                                                            <b>Late</b>
-                                                        </Badge> : null) : null
-                                            }
-                                        </div>
-                                    </Accordion.Title>
-                                    <Accordion.Content>
-                                        {
-                                            assignment.description
-                                            // ((new Date()).getTime() >= new Date(assignment.lastdate).getTime()).toString()
-                                        }
-                                        {
-                                            <div className={'flex-wrap flex gap-2 mt-4 justify-end'}>
-                                                <BsFillCalendarDateFill className={'h-7 w-7'}/>
-                                                <Kbd> {(new Date(assignment.lastdate)).toDateString()}</Kbd>
-                                            </div>
-                                        }
-                                    </Accordion.Content>
-                                    <Accordion.Content>
+                                    {user.role === 'Student' ? (
+                                        submissions.has(assignment.unique_code) ? (
+                                            <Badge icon={HiCheck} className={'shadow font-medium'} color={'green'}>
+                                                <b>Submitted</b>
+                                            </Badge>
+                                        ) : (
+                                            <Badge icon={FaExclamation} className={'shadow font-medium'} color={'warning'}>
+                                                <b>Not Submitted</b>
+                                            </Badge>
+                                        )
+                                    ) : null}
 
-                                        {
-                                            user.role === 'Teacher' ?
-                                                <div className={'flex flex-wrap justify-end gap-2'}>
-                                                    <Button color={'info'}
-                                                            onClick={
-                                                                () => {
-                                                                    const data = {
-                                                                        code: class_id.code,
-                                                                        assignment_id:assignment.unique_code,
-                                                                        last_date:new Date(assignment.lastdate),
-                                                                        enableMark: assignment.marksEnabled
-                                                                    }
-                                                                    navigation(`/AssignmentDetails/`, {
-                                                                        state: {
-                                                                            ...data  // Assuming 'data' contains other necessary properties
-                                                                             // or false depending on the condition
-                                                                        }
-                                                                    })                                                                    
-                                                                }
-                                                            }
-                                                    >
-                                                        <TbListDetails className={'mr-2 h-5 w-5'}/>
-                                                        <b>
-                                                            Details
-                                                        </b>
-                                                    </Button>
-                                                    <Button color={'failure'}>
-                                                        <FaTrash className="mr-2 h-5 w-5"/>
-                                                        <b>
-                                                            Delete
-                                                        </b>
-                                                    </Button>
-                                                </div> :
-                                                <div className={'flex-wrap flex justify-end'}>
-                                                    {
-                                                        submissions.has(assignment.unique_code) ?
-                                                            <Button color={'info'} disabled={true}>
-                                                                <b> Uploaded</b>
-                                                            </Button> :
-                                                            !assignment.latesubmisssion ? <Button onClick={
-                                                                () => {
-                                                                    setCurrent_assignment(assignment.unique_code)
-                                                                    setUploadmodal(true)
-                                                                }
+                                    {user.role === 'Student' &&
+                                        submissions.has(assignment.unique_code) &&
+                                        submissions.get(assignment.unique_code).sub_date > assignment.lastdate ? (
+                                        <Badge className={'shadow'} icon={FaExclamation} color={'failure'}>
+                                            <b>Late</b>
+                                        </Badge>
+                                    ) : null}
 
-                                                            }
-
-                                                            >
-                                                                <MdOutlineFileUpload className="mr-2 h-5 w-5"/>
-                                                                <b>
-                                                                    Upload
-                                                                </b>
-                                                            </Button> : (new Date(assignment.lastdate).getTime() >= (new Date()).getTime()) ?
-                                                                <Button onClick={
-                                                                    () => {
-                                                                        setCurrent_assignment(assignment.unique_code)
-                                                                        setUploadmodal(true)
-                                                                    }
-
-                                                                }
-                                                                >
-                                                                    <MdOutlineFileUpload className="mr-2 h-5 w-5"/>
-                                                                    <b>
-                                                                        Upload
-                                                                    </b>
-                                                                </Button> : <Button disabled={true}>
-                                                                    <MdOutlineFileUpload className="mr-2 h-5 w-5"/>
-                                                                    <b>
-                                                                        Upload
-                                                                    </b>
-                                                                </Button>
-                                                    }
-                                                </div>
-                                        }
-
-                                    </Accordion.Content>
-                                </Accordion.Panel>
-                            </Accordion>
-                        ))
-                    )
-                }
+                                    
+                                </div>
+                            </Accordion.Title>
+                            <Accordion.Content>
+                                {assignment.description}
+                                <div className={'flex-wrap flex gap-2 mt-4 justify-end'}>
+                                    <BsFillCalendarDateFill className={'h-7 w-7'} />
+                                    <Kbd> {(new Date(assignment.lastdate)).toDateString()}</Kbd>
+                                </div>
+                            </Accordion.Content>
+                            <Accordion.Content>
+                                {user.role === 'Teacher' ? (
+                                    <div className={'flex flex-wrap justify-end gap-2'}>
+                                        <Button
+                                            color={'info'}
+                                            onClick={() => {
+                                                const data = {
+                                                    code: class_id.code,
+                                                    assignment_id: assignment.unique_code,
+                                                    last_date: new Date(assignment.lastdate),
+                                                    enableMark: assignment.marksEnabled,
+                                                };
+                                                navigation(`/AssignmentDetails/`, {
+                                                    state: {
+                                                        ...data,
+                                                    },
+                                                });
+                                            }}
+                                        >
+                                            <TbListDetails className={'mr-2 h-5 w-5'} />
+                                            <b>Details</b>
+                                        </Button>
+                                        <Button color={'failure'}>
+                                            <FaTrash className="mr-2 h-5 w-5" />
+                                            <b>Delete</b>
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <div className={'flex-wrap flex justify-end'}>
+                                        {submissions.has(assignment.unique_code) ? (
+                                            <Button color={'info'} disabled={true}>
+                                                <b>Uploaded</b>
+                                            </Button>
+                                        ) : !assignment.latesubmisssion ? (
+                                            <Button
+                                                onClick={() => {
+                                                    setCurrent_assignment(assignment.unique_code);
+                                                    setUploadmodal(true);
+                                                }}
+                                            >
+                                                <MdOutlineFileUpload className="mr-2 h-5 w-5" />
+                                                <b>Upload</b>
+                                            </Button>
+                                        ) : new Date(assignment.lastdate).getTime() >= new Date().getTime() ? (
+                                            <Button
+                                                onClick={() => {
+                                                    setCurrent_assignment(assignment.unique_code);
+                                                    setUploadmodal(true);
+                                                }}
+                                            >
+                                                <MdOutlineFileUpload className="mr-2 h-5 w-5" />
+                                                <b>Upload</b>
+                                            </Button>
+                                        ) : (
+                                            <Button disabled={true}>
+                                                <MdOutlineFileUpload className="mr-2 h-5 w-5" />
+                                                <b>Upload</b>
+                                            </Button>
+                                        )}
+                                    </div>
+                                )}
+                            </Accordion.Content>
+                        </Accordion.Panel>
+                    </Accordion>
+                ))}
             </div>
+
 
         </div>
 
