@@ -18,6 +18,7 @@ const AssignmentDetails = () => {
     const [fileNames, setFileNames] = useState([]);
     const regex = /\.(jpg|jpeg|png|gif|webp|html|css|txt|mp4|webm|pdf)$/i;
     const storage = getStorage();
+    const [updatedMarks, setUpdatedMarks] = useState({});
 
 
     const onCloseModal = () => {
@@ -81,47 +82,62 @@ const AssignmentDetails = () => {
             );
         });
     }, []);
+
+
+
     const handleMarkChange = (studentId, newMark, originalMark) => {
         // Ensure only numbers are entered
-        if (newMark !== '' && !/^\d+$/.test(newMark)) return; 
-    
+        if (newMark !== '' && !/^\d+$/.test(newMark)) return;
+
+        setUpdatedMarks(prev => ({
+            ...prev,
+            [studentId]: newMark
+        }));
+
         setSubmissions(prevSubmissions =>
             prevSubmissions.map(submission =>
                 submission.student_id === studentId
-                    ? { 
-                        ...submission, 
-                        tempMarks: newMark, 
+                    ? {
+                        ...submission,
+                        tempMarks: newMark,
                         showUpdateButton: newMark !== '' && Number(newMark) !== (originalMark !== undefined ? Number(originalMark) : NaN)
                     }
                     : submission
             )
         );
     };
-    
-    
-    const updateMarks = async (studentId, newMark) => {
+
+    const updateMarks = async (studentId) => {
+        const newMark = updatedMarks[studentId]; // Get updated mark for student
+
+        if (newMark === undefined) return; // Prevent unnecessary API calls
+
         try {
-            const response = await fetch(`http://localhost:8080/api/addmarks/${state.assignment_id}/${studentId}`, {
+            const response = await fetch(`http://localhost:8080/api/AddMarks/${state.assignment_id}/${studentId}/${newMark}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ marks: newMark })
             });
-    
+
             if (response.ok) {
-                const updatedSubmission = await response.json();
-                console.log("Marks updated successfully:", updatedSubmission);
-    
-                // Update state only after successful backend update
+                console.log("Marks updated successfully");
+
+                // Reset the update state
+                setUpdatedMarks(prev => {
+                    const newState = { ...prev };
+                    delete newState[studentId];
+                    return newState;
+                });
+
                 setSubmissions(prevSubmissions =>
                     prevSubmissions.map(submission =>
                         submission.student_id === studentId
-                            ? { 
-                                ...submission, 
-                                marks: newMark, 
-                                showUpdateButton: false, 
-                                tempMarks: undefined 
+                            ? {
+                                ...submission,
+                                marks: newMark,
+                                showUpdateButton: false,
+                                tempMarks: undefined
                             }
                             : submission
                     )
@@ -133,9 +149,9 @@ const AssignmentDetails = () => {
             console.error("Error updating marks:", error);
         }
     };
-    
-    
-    
+
+
+
 
     return (
         <div>

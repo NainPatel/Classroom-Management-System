@@ -268,22 +268,30 @@ public class controller {
     }
 
 
+@PutMapping("AddMarks/{assignment_id}/{student_id}/{marks}")
+    ResponseEntity<submissions> AddMarks(@PathVariable String assignment_id, @PathVariable String student_id, @PathVariable int marks) {
+        System.out.println("Marks: " + marks);
 
-    @PutMapping("/addmarks/{assignment_id}/{student_id}")
-public ResponseEntity<submissions> addMarks(@PathVariable String assignment_id, 
-                                            @PathVariable String student_id, 
-                                            @RequestBody Map<String, Object> data) {
-    List<submissions> submissionsList = submissions_repo.findByStudentId(assignment_id, student_id);
-    
-    if (!submissionsList.isEmpty()) {
-        submissions submission = submissionsList.get(0); // Assuming you want the first result
-        submission.setMarks(Integer.parseInt(data.get("marks").toString()));
-        submissions_repo.save(submission);
-        return ResponseEntity.ok(submission);
-    } else {
-        return ResponseEntity.notFound().build();
+        List<submissions> submissionsList = submissions_repo.findByAssignmentId( assignment_id);
+        Optional<submissions> submission = submissionsList.stream()
+                .filter(s -> s.getStudent_id().equals(student_id))
+                .findFirst();
+
+        if (submission.isPresent()) {
+            // Found submission
+            submissions foundSubmission = submission.get();
+            System.out.println("Submission found: " + foundSubmission);
+            foundSubmission.setMarks(marks); // Assume newMarks is the updated value
+
+            // Save the updated submission
+            submissions_repo.save(foundSubmission);
+            return ResponseEntity.ok(foundSubmission);
+        } else {
+            System.out.println("No submission found for student_id: " + student_id);
+            return ResponseEntity.ok(null);
+        }
+
     }
-}
 
 
 //    @PostMapping("/submission")
