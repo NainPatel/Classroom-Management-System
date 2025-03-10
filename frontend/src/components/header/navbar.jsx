@@ -32,10 +32,17 @@ const Navbar = () => {
     const login = useRef(null);
     const signup = useRef(null);
     const [email, setEmail] = useState('');
+    const [showOtpForm, setShowOtpForm] = useState(false);
+    const [otp, setOtp] = useState('');
+    const [countdown, setCountdown] = useState(180); // 3 minutes in seconds
+    const [otpData, setOtpData] = useState(null);
 
     function onCloseModal() {
         setOpenModal(false);
         setEmail('');
+        setShowOtpForm(false);
+        setOtp('');
+        setCountdown(180);
     }
 
     const toggleMenu = () => {
@@ -46,6 +53,7 @@ const Navbar = () => {
         setSignupModal(!signupModal);
         setOpenModal(true)
         setEmail('')
+        setShowOtpForm(false);
     }
 
     const notification = (message) => {
@@ -53,6 +61,29 @@ const Navbar = () => {
             autoClose: 3000
         })
     }
+
+    useEffect(() => {
+        let timer;
+        if (showOtpForm && countdown > 0) {
+            timer = setInterval(() => {
+                setCountdown(prev => prev - 1);
+            }, 1000);
+        } else if (countdown === 0) {
+            toast.error("OTP expired. Please request a new one.");
+            setShowOtpForm(false);
+        }
+        
+        return () => {
+            clearInterval(timer);
+        };
+    }, [showOtpForm, countdown]);
+
+    const formatTime = (seconds) => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+    };
+
     const check_auth = async (obj) => {
         const email = obj.email;
         const password = obj.password;
@@ -90,6 +121,14 @@ const Navbar = () => {
             signup.current.style.opacity = 0.5;
     
             try {
+                // Save signup data for later after OTP verification
+                setOtpData({
+                    username,
+                    email,
+                    password,
+                    role
+                });
+                
                 const sendOtpResponse = await fetch(`http://localhost:8080/api/email/send-otp?email=${email}`, {
                     method: 'POST',
                 });
@@ -97,168 +136,211 @@ const Navbar = () => {
                 if (!sendOtpResponse.ok) {
                     throw new Error('Failed to send OTP');
                 }
-    
-                const enteredOtp = prompt('Enter the OTP sent to your email:');
-                if (!enteredOtp) {
-                    throw new Error('OTP entry cancelled');
-                }
-                const verifyOtpResponse = await fetch(`http://localhost:8080/api/email/verify-otp?email=${email}&otp=${enteredOtp}`, {
-                    method: "POST",
-                });
-    
-                const responseText = await verifyOtpResponse.text();
-                if (responseText.trim() !== "OTP verified successfully.") {
-                    throw new Error("Invalid OTP. Please try again.");
-                }
-                toast.success("OTP verified successfully!");
-                await createUserWithEmailAndPassword(auth, email, password)
-                    .then(async (userCredential) => {
-                        await updateProfile(auth.currentUser, {
-                            displayName: username,
-                        });
-    
-                        const user = userCredential.user;
-                        const usr = {
-                            uid: user.uid,
-                            username: username,
-                            email: user.email,
-                            role: role
-                        };
-    
-                        const docref = doc(firestore_database, 'User', user.uid);
-                        const obj = { email: user.email, role: role };
-    
-                        FetchComponents({ uid: userCredential.user.uid, username: username, role: role });
-    
-                        await setDoc(docref, obj);
-                        signup.current.style.opacity = 1;
-    
-                        let message = `Welcome , ${user.displayName}`;
-                        dispatch(AddUser(usr));
-                        setOpenModal(false);
-                        setSignupModal(false);
-                        setUsername('');
-                        setEmail('');
-                        notification(message);
-                    })
-                    .catch((error) => {
-                        signup.current.style.opacity = 1;
-                        toast.error(error.code);
-                    });
-    
+                
+                // Show OTP form and start countdown
+                setShowOtpForm(true);
+                setCountdown(180);
+                signup.current.style.opacity = 1;
+                toast.info("OTP sent to your email. Please verify within 3 minutes.");
+                
             } catch (error) {
                 signup.current.style.opacity = 1;
                 toast.error(error.message);
             }
         }
-    };    
+    };
+
+    const verifyOtp = async (e) => {
+        e.preventDefault();
+        
+        try {
+            const verifyOtpResponse = await fetch(`http://localhost:8080/api/email/verify-otp?email=${otpData.email}&otp=${otp}`, {
+                method: "POST",
+            });
+
+            const responseText = await verifyOtpResponse.text();
+            if (responseText.trim() !== "OTP verified successfully.") {
+                throw new Error("Invalid OTP. Please try again.");
+            }
+            
+            toast.success("OTP verified successfully!");
+            
+            // Continue with user creation
+            await createUserWithEmailAndPassword(auth, otpData.email, otpData.password)
+                .then(async (userCredential) => {
+                    await updateProfile(auth.currentUser, {
+                        displayName: otpData.username,
+                    });
+
+                    const user = userCredential.user;
+                    const usr = {
+                        uid: user.uid,
+                        username: otpData.username,
+                        email: user.email,
+                        role: otpData.role
+                    };
+
+                    const docref = doc(firestore_database, 'User', user.uid);
+                    const obj = { email: user.email, role: otpData.role };
+
+                    FetchComponents({ uid: userCredential.user.uid, username: otpData.username, role: otpData.role });
+
+                    await setDoc(docref, obj);
+                    
+                    let message = `Welcome , ${user.displayName}`;
+                    dispatch(AddUser(usr));
+                    setOpenModal(false);
+                    setSignupModal(false);
+                    setUsername('');
+                    setEmail('');
+                    setShowOtpForm(false);
+                    setOtp('');
+                    notification(message);
+                })
+                .catch((error) => {
+                    toast.error(error.code);
+                });
+        } catch (error) {
+            toast.error(error.message);
+        }
+    };
+        
     return (
         <div>
             <Modal show={openModal} name={'signIn model'} size="md" onClose={onCloseModal} popup>
                 <Modal.Header />
                 <Modal.Body>
-                    <form onSubmit={(event) => {
-                        event.preventDefault();
-                        const data = new FormData(event.target);
-                        if (signupModal && (data.get('role') === 'none')) {
-                            toast.error("Please Select Role")
-                            return
-                        }
-                        const obj = {
-                            role: data.get('role') ?? '',
-                            username: data.get('username') ?? '',
-                            email: data.get('email') ?? '',
-                            password: data.get('password') ?? ''
-                        }
-                        check_auth(obj)
-                    }}>
-                        <div className="space-y-6">
-                            <h3 className="text-xl font-medium text-gray-900 dark:text-white"><b>Sign in to EduConnect </b></h3>
-
-                            {signupModal ? (
+                    {showOtpForm ? (
+                        <form onSubmit={verifyOtp}>
+                            <div className="space-y-6">
+                                <h3 className="text-xl font-medium text-gray-900 dark:text-white"><b>Verify OTP</b></h3>
                                 <div>
                                     <div className="mb-2 block">
-                                        <Label htmlFor="username" value="Your username" />
+                                        <Label htmlFor="otp" value="Enter OTP sent to your email" />
                                     </div>
                                     <TextInput
-                                        addon="@"
-                                        id="username"
-                                        placeholder="xyz"
-                                        value={username}
-                                        onChange={(event) => setUsername(event.target.value)}
-                                        name={'username'}
+                                        id="otp"
+                                        placeholder="Enter 6-digit OTP"
+                                        value={otp}
+                                        onChange={(event) => setOtp(event.target.value)}
                                         required
                                     />
                                 </div>
-                            ) : null}
-
-                            <div>
-                                <div className="mb-2 block">
-                                    <Label htmlFor="email" value="Your email" />
+                                <div className="text-center text-gray-500 dark:text-gray-400">
+                                    Time remaining: <span className="font-medium">{formatTime(countdown)}</span>
                                 </div>
-                                <TextInput
-                                    id="email"
-                                    placeholder="name@company.com"
-                                    value={email}
-                                    onChange={(event) => setEmail(event.target.value)}
-                                    name={'email'}
-                                    rightIcon={HiMail}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <div className="mb-2 block">
-                                    <Label htmlFor="password" value="Your password" />
+                                <div className="w-full">
+                                    <Button type="submit">Verify OTP</Button>
                                 </div>
-                                <TextInput id="password" type="password" name={'password'} required />
+                                <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+                                    Didn't receive the OTP? You can request a new one when the timer expires.
+                                </div>
                             </div>
-                            <div className="flex justify-between">
-                            </div>
-                            <div className="flex justify-between">
-                                {signupModal ?
-                                    <div>
-                                        <label htmlFor={"role"} />
-                                        <select name={"role"} id={"role"}>
-                                            <option value={"none"}>Select Role</option>
-                                            <option value={"Teacher"}>Teacher</option>
-                                            <option value={"Student"}>Student</option>
-                                        </select>
-                                    </div>
-                                    : null
-                                }
-                            </div>
-                            <div className="w-full">
-                                {signupModal ? <Button type={'submit'} ref={signup}>SignUp</Button> :
-                                    <Button type={'submit'} ref={login}>Log in to your account</Button>
-                                }
-                            </div>
-                            {signupModal ?
-                                <div
-                                        className="flex justify-between text-xl font-medium text-gray-500 dark:text-gray-300">
-                                        Have Account?&nbsp;
-                                        <a href="" onClick={(event) => {
-                                            event.preventDefault();
-                                            document.getElementById('password').value = null;
-                                            toggleSignUpModal()
-                                        }}
-                                           className="text-cyan-700 hover:underline dark:text-cyan-500">
-                                            Login
-                                        </a>
-                                    </div>
-                                    : <div
-                                        className="flex justify-between text-xl font-medium text-gray-500 dark:text-gray-300">
-                                        Not registered?&nbsp;
-                                        <a href="" onClick={(event) => {
-                                            event.preventDefault();
-                                            document.getElementById('password').value = null;
-                                            toggleSignUpModal()
-                                        }} className="text-cyan-700 hover:underline dark:text-cyan-500">
-                                            Create account
-                                        </a>
-                                    </div>
+                        </form>
+                    ) : (
+                        <form onSubmit={(event) => {
+                            event.preventDefault();
+                            const data = new FormData(event.target);
+                            if (signupModal && (data.get('role') === 'none')) {
+                                toast.error("Please Select Role")
+                                return
                             }
-                        </div>
-                    </form>
+                            const obj = {
+                                role: data.get('role') ?? '',
+                                username: data.get('username') ?? '',
+                                email: data.get('email') ?? '',
+                                password: data.get('password') ?? ''
+                            }
+                            check_auth(obj)
+                        }}>
+                            <div className="space-y-6">
+                                <h3 className="text-xl font-medium text-gray-900 dark:text-white"><b>Sign in to EduConnect </b></h3>
+
+                                {signupModal ? (
+                                    <div>
+                                        <div className="mb-2 block">
+                                            <Label htmlFor="username" value="Your username" />
+                                        </div>
+                                        <TextInput
+                                            addon="@"
+                                            id="username"
+                                            placeholder="xyz"
+                                            value={username}
+                                            onChange={(event) => setUsername(event.target.value)}
+                                            name={'username'}
+                                            required
+                                        />
+                                    </div>
+                                ) : null}
+
+                                <div>
+                                    <div className="mb-2 block">
+                                        <Label htmlFor="email" value="Your email" />
+                                    </div>
+                                    <TextInput
+                                        id="email"
+                                        placeholder="name@company.com"
+                                        value={email}
+                                        onChange={(event) => setEmail(event.target.value)}
+                                        name={'email'}
+                                        rightIcon={HiMail}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <div className="mb-2 block">
+                                        <Label htmlFor="password" value="Your password" />
+                                    </div>
+                                    <TextInput id="password" type="password" name={'password'} required />
+                                </div>
+                                <div className="flex justify-between">
+                                </div>
+                                <div className="flex justify-between">
+                                    {signupModal ?
+                                        <div>
+                                            <label htmlFor={"role"} />
+                                            <select name={"role"} id={"role"}>
+                                                <option value={"none"}>Select Role</option>
+                                                <option value={"Teacher"}>Teacher</option>
+                                                <option value={"Student"}>Student</option>
+                                            </select>
+                                        </div>
+                                        : null
+                                    }
+                                </div>
+                                <div className="w-full">
+                                    {signupModal ? <Button type={'submit'} ref={signup}>SignUp</Button> :
+                                        <Button type={'submit'} ref={login}>Log in to your account</Button>
+                                    }
+                                </div>
+                                {signupModal ?
+                                    <div
+                                            className="flex justify-between text-xl font-medium text-gray-500 dark:text-gray-300">
+                                            Have Account?&nbsp;
+                                            <a href="" onClick={(event) => {
+                                                event.preventDefault();
+                                                document.getElementById('password').value = null;
+                                                toggleSignUpModal()
+                                            }}
+                                            className="text-cyan-700 hover:underline dark:text-cyan-500">
+                                                Login
+                                            </a>
+                                        </div>
+                                        : <div
+                                            className="flex justify-between text-xl font-medium text-gray-500 dark:text-gray-300">
+                                            Not registered?&nbsp;
+                                            <a href="" onClick={(event) => {
+                                                event.preventDefault();
+                                                document.getElementById('password').value = null;
+                                                toggleSignUpModal()
+                                            }} className="text-cyan-700 hover:underline dark:text-cyan-500">
+                                                Create account
+                                            </a>
+                                        </div>
+                                }
+                            </div>
+                        </form>
+                    )}
                 </Modal.Body>
             </Modal>
             <nav className="relative bg-black shadow-lg">
