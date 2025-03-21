@@ -105,7 +105,7 @@ const Navbar = () => {
                         email: user.email,
                         role: snapshot.data().role
                     };
-                    console.log(usr);
+                    console.log(usr.email);
                     login.current.style.opacity = .5;
                     let message = `Welcome Back , ${user.displayName}`;
                     dispatch(AddUser(usr));

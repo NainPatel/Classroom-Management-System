@@ -6,6 +6,8 @@ import {
   Footer
 } from 'flowbite-react';
 import { HiAcademicCap, HiUserGroup, HiDocumentText } from 'react-icons/hi';
+import imag from "../../assets/first.jpg"
+
 
 export function Home() {
   const features = [
@@ -31,7 +33,16 @@ export function Home() {
       {/* Hero Section */}
       <div className="bg-gradient-to-b from-blue-800 to-blue-600 text-white">
         <div className="container mx-auto px-4 py-16 md:py-24">
-          <div className="flex flex-col md:flex-row items-center">
+          <div className="flex flex-col md:flex-row-reverse items-center">
+            {/* Image on the Right */}
+            <div className="md:w-1/2 flex justify-end">
+              <img 
+                src={imag} 
+                alt="Students collaborating" 
+                className="max-w-[600px] max-h-[900px] w-auto h-auto object-cover rounded-lg shadow-xl"
+              />
+            </div>
+            {/* Text on the Left */}
             <div className="md:w-1/2 mb-8 md:mb-0">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-4">
                 Welcome to <span className="text-blue-200">EduConnect</span>
@@ -40,17 +51,10 @@ export function Home() {
                 The modern classroom management platform that brings teachers and students together.
               </p>
             </div>
-            <div className="md:w-1/2">
-              <img 
-                src="/api/placeholder/600/400" 
-                alt="Students collaborating" 
-                className="rounded-lg shadow-xl" 
-              />
-            </div>
           </div>
         </div>
       </div>
-
+  
       {/* Features Section */}
       <div className="container mx-auto px-4 py-16">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
@@ -68,7 +72,7 @@ export function Home() {
           ))}
         </div>
       </div>
-
+  
       {/* Footer */}
       <Footer container>
         <div className="w-full">
@@ -116,6 +120,5 @@ export function Home() {
       </Footer>
     </div>
   );
-}
-
+}  
 export default Home;

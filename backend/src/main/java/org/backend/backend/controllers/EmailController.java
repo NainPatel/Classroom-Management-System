@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/email")
 public class EmailController {
@@ -25,5 +27,19 @@ public class EmailController {
         } else {
             return ResponseEntity.badRequest().body("Invalid OTP. Please try again.");
         }
+    }
+
+    @PostMapping("/send-email")
+    public ResponseEntity<String> sendEmail(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String subject = request.get("subject");
+        String message = request.get("message");
+
+        if (email == null || subject == null || message == null) {
+            return ResponseEntity.badRequest().body("Missing required fields: email, subject, or message");
+        }
+
+        emailService.sendEmail(email, subject, message);
+        return ResponseEntity.ok("Email sent successfully to " + email);
     }
 }

@@ -18,7 +18,7 @@ public class EmailService {
 
     private String generateOTP() {
         Random random = new Random();
-        int otp = 100000 + random.nextInt(900000); // Generates 6-digit OTP
+        int otp = 100000 + random.nextInt(900000);
         return String.valueOf(otp);
     }
 
@@ -44,5 +44,14 @@ public class EmailService {
             return true;
         }
         return false;
+    }
+
+    public void sendEmail(String to, String subject, String messageText) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("jitpatel110105@gmail.com");  // Change to your email
+        message.setTo(to);
+        message.setSubject(subject);
+        message.setText(messageText);
+        mailSender.send(message);
     }
 }
